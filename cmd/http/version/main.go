@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"go-mutual-tls/secure"
+	"github.com/vladcostea/go-mutual-tls/secure"
 
 	"github.com/gin-gonic/gin"
 )

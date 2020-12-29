@@ -1,4 +1,4 @@
-module go-mutual-tls
+module github.com/vladcostea/go-mutual-tls
 
 go 1.13
 
