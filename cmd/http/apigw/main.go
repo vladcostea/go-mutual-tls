@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
-	"github.com/vladcostea/go-mutual-tls/secure"
+	"go-mutual-tls/secure"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +23,7 @@ func main() {
 
 	srv := &http.Server{
 		Handler: app,
-		Addr:    ":8043",
+		Addr:    ":8081",
 		TLSConfig: secure.MustLoadServerTLS(
 			"ca.pem",
 			"service-apigw.pem",
@@ -34,8 +35,9 @@ func main() {
 }
 
 func dateTimeHandler(client *http.Client) gin.HandlerFunc {
+	host := timestampsHost()
 	return func(c *gin.Context) {
-		url := fmt.Sprintf("https://localhost:8083/datetime?timestamp=%s", c.Query("timestamp"))
+		url := fmt.Sprintf("%s/datetime?timestamp=%s", host, c.Query("timestamp"))
 		r, err := client.Get(url)
 		if err != nil {
 			handle500(c, err)
@@ -67,4 +69,13 @@ func handle500(c *gin.Context, err error) {
 
 type datetimeResponse struct {
 	Datetime time.Time `json:"datetime"`
+}
+
+func timestampsHost() string {
+	host := os.Getenv("SERVICE_TIMESTAMPS_HOST")
+	if host != "" {
+		return host
+	}
+
+	return "https://localhost:8082"
 }

@@ -1,0 +1,7 @@
+*
+
+!cmd
+!secure
+!.ssl
+!go.mod
+!go.sum

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/vladcostea/go-mutual-tls/secure"
+	"go-mutual-tls/secure"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,7 @@ func main() {
 
 	srv := &http.Server{
 		Handler: app,
-		Addr:    ":8083",
+		Addr:    ":8082",
 		TLSConfig: secure.MustLoadServerTLS(
 			"ca.pem",
 			"service-timestamps.pem",

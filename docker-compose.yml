@@ -1,0 +1,30 @@
+version: "3.3"
+services:
+  apigw:
+    build:
+      args:
+        SERVICE: "apigw"
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - timestamps
+    environment:
+      - SERVICE_TIMESTAMPS_HOST=https://timestamps:8082
+    networks:
+      - mutualtls
+  timestamps:
+    build:
+      args:
+        SERVICE: "timestamps"
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    networks:
+      - mutualtls
+
+networks:
+  mutualtls:
+    driver: bridge
