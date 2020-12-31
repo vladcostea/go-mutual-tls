@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/vladcostea/go-mutual-tls/secure"
 
@@ -11,46 +13,58 @@ import (
 )
 
 func main() {
-	tlscfg := secure.MustLoadClientTLS("ca.pem", "client-apigw.pem", "client-apigw-key.pem")
-	client := secure.NewHTTPSClient(tlscfg)
+	client := secure.NewHTTPSClient(
+		secure.MustLoadClientTLS("ca.pem", "service-apigw.pem", "service-apigw-key.pem"),
+	)
 
 	app := gin.Default()
-	app.GET("/version", versionHandler(client))
+	app.GET("/datetime", dateTimeHandler(client))
 
 	srv := &http.Server{
-		Handler:   app,
-		Addr:      ":8043",
-		TLSConfig: secure.MustLoadServerTLS("ca.pem", "service-apigw.pem", "service-apigw-key.pem"),
+		Handler: app,
+		Addr:    ":8043",
+		TLSConfig: secure.MustLoadServerTLS(
+			"ca.pem",
+			"service-apigw.pem",
+			"service-apigw-key.pem",
+		),
 	}
 
 	srv.ListenAndServeTLS("", "")
 }
 
-func versionHandler(client *http.Client) gin.HandlerFunc {
+func dateTimeHandler(client *http.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		r, err := client.Get("https://localhost:8083/version")
-		return500IfError(c, err)
+		url := fmt.Sprintf("https://localhost:8083/datetime?timestamp=%s", c.Query("timestamp"))
+		r, err := client.Get(url)
+		if err != nil {
+			handle500(c, err)
+			return
+		}
 
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
-		return500IfError(c, err)
+		if err != nil {
+			handle500(c, err)
+			return
+		}
 
-		var vr versionResponse
-		err = json.Unmarshal(body, &vr)
-		return500IfError(c, err)
+		var dr datetimeResponse
+		err = json.Unmarshal(body, &dr)
+		if err != nil {
+			handle500(c, err)
+			return
+		}
 
-		c.JSON(200, vr)
+		c.JSON(200, dr)
 	}
 }
 
-func return500IfError(c *gin.Context, err error) {
-	if err != nil {
-		c.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+func handle500(c *gin.Context, err error) {
+	c.Error(err)
+	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 }
 
-type versionResponse struct {
-	Version string `json:"version"`
+type datetimeResponse struct {
+	Datetime time.Time `json:"datetime"`
 }

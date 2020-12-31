@@ -10,9 +10,9 @@ import (
 
 func MustLoadServerTLS(caFile, certFile, keyFile string) *tls.Config {
 	cp := x509.NewCertPool()
-	cp.AppendCertsFromPEM(mustReadTLSFile(caFile))
+	cp.AppendCertsFromPEM(mustReadFile(caFile))
 
-	certs, err := tls.LoadX509KeyPair(tlsFilepath(certFile), tlsFilepath(keyFile))
+	certs, err := tls.LoadX509KeyPair(certFilepath(certFile), certFilepath(keyFile))
 	if err != nil {
 		panic(err)
 	}
@@ -26,9 +26,9 @@ func MustLoadServerTLS(caFile, certFile, keyFile string) *tls.Config {
 
 func MustLoadClientTLS(caFile, certFile, keyFile string) *tls.Config {
 	cp := x509.NewCertPool()
-	cp.AppendCertsFromPEM(mustReadTLSFile(caFile))
+	cp.AppendCertsFromPEM(mustReadFile(caFile))
 
-	certs, err := tls.LoadX509KeyPair(tlsFilepath(certFile), tlsFilepath(keyFile))
+	certs, err := tls.LoadX509KeyPair(certFilepath(certFile), certFilepath(keyFile))
 	if err != nil {
 		panic(err)
 	}
@@ -39,8 +39,8 @@ func MustLoadClientTLS(caFile, certFile, keyFile string) *tls.Config {
 	}
 }
 
-func mustReadTLSFile(file string) []byte {
-	b, err := ioutil.ReadFile(tlsFilepath(file))
+func mustReadFile(file string) []byte {
+	b, err := ioutil.ReadFile(certFilepath(file))
 	if err != nil {
 		panic(err)
 	}
@@ -48,6 +48,6 @@ func mustReadTLSFile(file string) []byte {
 	return b
 }
 
-func tlsFilepath(file string) string {
-	return filepath.Join(os.Getenv("TLS_DIR"), file)
+func certFilepath(file string) string {
+	return filepath.Join(os.Getenv("CERT_DIR"), file)
 }

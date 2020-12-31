@@ -4,7 +4,7 @@
             "expiry": "8760h"
         },
         "profiles": {
-            "service-version": {
+            "service-timestamps": {
                 "expiry": "8760h",
                 "usages": [
                     "signing",
@@ -17,7 +17,8 @@
                 "usages": [
                     "signing",
                     "key encipherment",
-                    "server auth"
+                    "server auth",
+                    "client auth"
                 ]
             },
             "client-apigw": {
