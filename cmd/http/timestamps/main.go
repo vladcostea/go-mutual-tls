@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -11,12 +15,20 @@ import (
 )
 
 func main() {
-	app := gin.Default()
+	run, shutdown := App(context.Background(), 8082, os.Stdout)
+	defer shutdown()
+	run()
+}
+
+func App(ctx context.Context, port int, stdout io.Writer) (func() error, func() error) {
+	app := gin.New()
+	app.Use(gin.Recovery())
+	app.Use(gin.LoggerWithWriter(stdout))
 	app.GET("/datetime", dateTimeHandler)
 
 	srv := &http.Server{
 		Handler: app,
-		Addr:    ":8082",
+		Addr:    fmt.Sprintf(":%d", port),
 		TLSConfig: secure.MustLoadServerTLS(
 			"ca.pem",
 			"service-timestamps.pem",
@@ -24,7 +36,11 @@ func main() {
 		),
 	}
 
-	srv.ListenAndServeTLS("", "")
+	return func() error {
+			return srv.ListenAndServeTLS("", "")
+		}, func() error {
+			return srv.Shutdown(ctx)
+		}
 }
 
 func dateTimeHandler(c *gin.Context) {
